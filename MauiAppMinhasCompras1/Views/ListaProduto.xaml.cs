@@ -1,10 +1,27 @@
+
+using MauiAppMinhasCompras1.Models;
+using System.Collections.ObjectModel;
+
 namespace MauiAppMinhasCompras1.Views;
+
 
 public partial class ListaProduto : ContentPage
 {
+
+	ObservableCollection<Produto> lista = new ObservableCollection<Produto>();
+
 	public ListaProduto()
 	{
 		InitializeComponent();
+
+		lst_produtos.ItemsSource = lista;
+	}
+
+	protected async override void OnAppearing()
+	{
+		List<Produto> tap = await App.Db.GetAll();
+
+		tap.ForEach(i => lista.Add(i));
 	}
 
 	private void ToolbarItem_Clicked(object sender, EventArgs e)
@@ -17,4 +34,30 @@ public partial class ListaProduto : ContentPage
 			DisplayAlert("Ops", ex.Message, "OK");
 		}
 	}
+
+	private async void txt_search_TextChanged(object sender, TextChangedEventArgs e)
+	{
+		string q = e.NewTextValue;
+
+		lista.Clear();
+
+        List<Produto> tap = await App.Db.Search(q);
+
+        tap.ForEach(i => lista.Add(i));
+
+    }
+
+    private void ToolbarItem_Clicked_1(object sender, EventArgs e)
+    {
+		double soma = lista.Sum(i => i.Total);
+
+		string msg = $"O total é {soma:C}";
+
+		DisplayAlert("Total dos produtos", msg, "OK");
+    }
+
+    private void MenuItem_Clicked(object sender, EventArgs e)
+    {
+
+    }
 }
