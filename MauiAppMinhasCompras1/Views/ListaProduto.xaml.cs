@@ -1,6 +1,7 @@
 
 using MauiAppMinhasCompras1.Models;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 
 namespace MauiAppMinhasCompras1.Views;
 
@@ -9,20 +10,38 @@ public partial class ListaProduto : ContentPage
 {
 
 	ObservableCollection<Produto> lista = new ObservableCollection<Produto>();
+    private object lst_produtos;
 
-	public ListaProduto()
+    public ListaProduto()
+    {
+        InitializeComponent();
+
+        lst_produtos.ItemsSource = lista;
+    }   
+
+    public ListaProduto()
+    {
+    }
+
+    private void InitializeComponent()
+    {
+        throw new NotImplementedException();
+    }
+
+    protected async override void OnAppearing()
 	{
-		InitializeComponent();
-
-		lst_produtos.ItemsSource = lista;
-	}
-
-	protected async override void OnAppearing()
-	{
+		try
+		{
+			
 		List<Produto> tap = await App.Db.GetAll();
 
 		tap.ForEach(i => lista.Add(i));
-	}
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Ops", ex.Message, "OK");
+        }
+    }
 
 	private void ToolbarItem_Clicked(object sender, EventArgs e)
 	{
@@ -37,6 +56,8 @@ public partial class ListaProduto : ContentPage
 
 	private async void txt_search_TextChanged(object sender, TextChangedEventArgs e)
 	{
+		try
+		{ 
 		string q = e.NewTextValue;
 
 		lista.Clear();
@@ -44,7 +65,11 @@ public partial class ListaProduto : ContentPage
         List<Produto> tap = await App.Db.Search(q);
 
         tap.ForEach(i => lista.Add(i));
-
+        }
+        catch (Exception ex)
+        {
+           await DisplayAlert("Ops", ex.Message, "OK");
+        }
     }
 
     private void ToolbarItem_Clicked_1(object sender, EventArgs e)
@@ -56,8 +81,40 @@ public partial class ListaProduto : ContentPage
 		DisplayAlert("Total dos produtos", msg, "OK");
     }
 
-    private void MenuItem_Clicked(object sender, EventArgs e)
+    private async Task MenuItem_Clicked(object sender, EventArgs e)
     {
+        try
+		{
+			MenuItem? selecionado = sender as MenuItem;
 
+			Produto p = selecionado.BindingContext as Produto;
+
+			bool confirm = await DisplayAlert("Tem Certeza?", $"Remover Produto? {p.Descricao} ", "Sim", "Não");
+			if (confirm)
+			{
+				await App.Db.Delete(p.Id);
+				lista.Remove(p);
+			}
+		}
+		catch (Exception ex)
+		{
+			DisplayAlert("Ops", ex.Message, "OK");
+}
+    }
+
+    private void lst_produtos_ItemSelected(object sender, SelectedItemChangedEventArgs e)
+    {
+      try{
+			Produto p = e.SelectedItem as Produto;
+
+			Navigation.PushAsync(new Views.EditarProduto 
+				{
+				 BindingContext = p,
+			});
+        }
+        catch (Exception ex)
+        {
+            DisplayAlert("Ops", ex.Message, "OK");
+        }
     }
 }

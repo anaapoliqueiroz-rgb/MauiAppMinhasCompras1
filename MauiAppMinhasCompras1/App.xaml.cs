@@ -30,7 +30,7 @@ namespace MauiAppMinhasCompras1
             InitializeComponent();
 
             //MainPage = new AppShell();
-            MainPage = new NavigationPage(new Views.ListaProduto());
+            MainPage = new NavigationPage(root: new Views.ListaProduto());
         }
 
        
